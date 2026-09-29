@@ -8,11 +8,20 @@ TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
 PROJECT_SOURCES = project.v
 
+# Behavioural model of the IHP SRAM macro, from IHP-Open-PDK at the revision
+# the GDS action installs.  Needed by both RTL and gate-level simulation; the
+# blackbox stub in src/ is for synthesis only and must not be simulated.
+MODEL_DIR = $(PWD)/models
+SRAM_MODELS = $(MODEL_DIR)/RM_IHPSG13_1P_1024x8_c2_bm_bist.v \
+              $(MODEL_DIR)/RM_IHPSG13_1P_core_behavioral_bm_bist.v
+
 ifneq ($(GATES),yes)
 
 # RTL simulation:
 SIM_BUILD				= sim_build/rtl
+COMPILE_ARGS    += -DFUNCTIONAL
 VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,$(PROJECT_SOURCES))
+VERILOG_SOURCES += $(SRAM_MODELS)
 
 else
 
@@ -24,6 +33,7 @@ COMPILE_ARGS    += -DSIM
 VERILOG_SOURCES += $(PDK_ROOT)/ihp-sg13cmos5l/libs.ref/sg13cmos5l_io/verilog/sg13cmos5l_io.v
 VERILOG_SOURCES += $(PDK_ROOT)/ihp-sg13cmos5l/libs.ref/sg13cmos5l_stdcell/verilog/sg13cmos5l_udp.v
 VERILOG_SOURCES += $(PDK_ROOT)/ihp-sg13cmos5l/libs.ref/sg13cmos5l_stdcell/verilog/sg13cmos5l_stdcell.v
+VERILOG_SOURCES += $(SRAM_MODELS)
 
 # this gets copied in by the GDS action workflow
 VERILOG_SOURCES += $(PWD)/gate_level_netlist.v

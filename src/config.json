@@ -33,6 +33,46 @@
 
   "//": "Configuration docs: https://librelane.readthedocs.io/en/latest/reference/configuration.html",
 
+  "//": "IHP 1024x8 SRAM macro (RM_IHPSG13_1P_1024x8_c2_bm_bist), silicon-proven on ttihp0p2.",
+  "//": "Physical and timing views come from the installed PDK so they always match it.",
+  "MACROS": {
+    "RM_IHPSG13_1P_1024x8_c2_bm_bist": {
+      "instances": {
+        "sram": {
+          "location": [200, 150],
+          "orientation": "R0"
+        }
+      },
+      "gds": ["pdk_dir::libs.ref/sg13cmos5l_sram/gds/RM_IHPSG13_1P_1024x8_c2_bm_bist.gds"],
+      "lef": ["pdk_dir::libs.ref/sg13cmos5l_sram/lef/RM_IHPSG13_1P_1024x8_c2_bm_bist.lef"],
+      "lib": {
+        "nom_*": ["pdk_dir::libs.ref/sg13cmos5l_sram/lib/RM_IHPSG13_1P_1024x8_c2_bm_bist_typ_1p20V_25C.lib"],
+        "min_*": ["pdk_dir::libs.ref/sg13cmos5l_sram/lib/RM_IHPSG13_1P_1024x8_c2_bm_bist_fast_1p32V_m55C.lib"],
+        "max_*": ["pdk_dir::libs.ref/sg13cmos5l_sram/lib/RM_IHPSG13_1P_1024x8_c2_bm_bist_slow_1p08V_125C.lib"],
+        "*": ["pdk_dir::libs.ref/sg13cmos5l_sram/lib/RM_IHPSG13_1P_1024x8_c2_bm_bist_typ_1p20V_25C.lib"]
+      },
+      "nl": ["dir::RM_IHPSG13_1P_1024x8_c2_bm_bist.v"],
+      "spice": ["pdk_dir::libs.ref/sg13cmos5l_sram/cdl/RM_IHPSG13_1P_1024x8_c2_bm_bist.cdl"]
+    }
+  },
+  "PDN_MACRO_CONNECTIONS": [
+    "sram VPWR VGND VDD! VSS!",
+    "sram VPWR VGND VDDARRAY! VSS!"
+  ],
+  "MAGIC_EXT_ABSTRACT_CELLS": ["RM_IHPSG13_.*"],
+
+  "//": "The tile PDN is Metal4-only, so the SRAM's Metal4 supply pins are connected by",
+  "//": "Project.SramPowerColumns (librelane_plugin_protoemu.py) right after pdngen, and",
+  "//": "Project.RecheckPowerGrid reruns the power grid check on the result.",
+  "//": "pdn_cfg.tcl is LibreLane's default without the macro grid, which needs a second PDN layer.",
+  "PDN_CFG": "dir::pdn_cfg.tcl",
+  "meta": {
+    "substituting_steps": {
+      "+OpenROAD.GeneratePDN": "Project.SramPowerColumns",
+      "+Project.SramPowerColumns": "Project.RecheckPowerGrid"
+    }
+  },
+
   "//": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
   "//": "!!! DO NOT CHANGE ANYTHING BELOW THIS POINT !!!",
   "//": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
