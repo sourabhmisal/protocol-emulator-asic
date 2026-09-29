@@ -67,6 +67,7 @@
   "//": "pdn_cfg.tcl is LibreLane's default without the macro grid, which needs a second PDN layer.",
   "PDN_CFG": "dir::pdn_cfg.tcl",
   "meta": {
+    "flow": "Classic",
     "substituting_steps": {
       "+OpenROAD.GeneratePDN": "Project.SramPowerColumns",
       "+Project.SramPowerColumns": "Project.RecheckPowerGrid"
