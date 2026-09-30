@@ -61,6 +61,10 @@
   ],
   "MAGIC_EXT_ABSTRACT_CELLS": ["RM_IHPSG13_.*"],
 
+  "//": "All Magic DRC errors fall inside the SRAM macro's own GDS (Magic's generic rules vs. the",
+  "//": "foundry cell), so don't fail the flow on them; the Tiny Tapeout precheck signs off with KLayout DRC.",
+  "ERROR_ON_MAGIC_DRC": false,
+
   "//": "The tile PDN is Metal4-only, so the SRAM's Metal4 supply pins are connected by",
   "//": "Project.SramPowerColumns (librelane_plugin_protoemu.py) right after pdngen, and",
   "//": "Project.RecheckPowerGrid reruns the power grid check on the result.",
