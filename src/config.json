@@ -65,6 +65,10 @@
   "//": "foundry cell), so don't fail the flow on them; the Tiny Tapeout precheck signs off with KLayout DRC.",
   "ERROR_ON_MAGIC_DRC": false,
 
+  "//": "The SRAM's pins face away from the IO pins, so its DOUT nets route around the macro and",
+  "//": "exceed its 64 fF max_capacitance; repair again once real global routes are known.",
+  "RUN_POST_GRT_DESIGN_REPAIR": 1,
+
   "//": "The tile PDN is Metal4-only, so the SRAM's Metal4 supply pins are connected by",
   "//": "Project.SramPowerColumns (librelane_plugin_protoemu.py) right after pdngen, and",
   "//": "Project.RecheckPowerGrid reruns the power grid check on the result.",
