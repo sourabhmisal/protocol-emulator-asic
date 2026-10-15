@@ -35,12 +35,15 @@
 
   "//": "IHP 1024x8 SRAM macro (RM_IHPSG13_1P_1024x8_c2_bm_bist), silicon-proven on ttihp0p2.",
   "//": "Physical and timing views come from the installed PDK so they always match it.",
+  "//": "All SRAM signal pins sit on the macro's bottom edge (LEF y = 0). FS flips it vertically",
+  "//": "so they face the tile IO pins on the top edge, as in Ken Pettit's CMOS5L SRAM walkthrough",
+  "//": "(https://kdp1965.github.io/ihp-um-janestreet-prism/ihp_sram_macro.html).",
   "MACROS": {
     "RM_IHPSG13_1P_1024x8_c2_bm_bist": {
       "instances": {
         "sram": {
           "location": [200, 150],
-          "orientation": "R0"
+          "orientation": "FS"
         }
       },
       "gds": ["pdk_dir::libs.ref/sg13cmos5l_sram/gds/RM_IHPSG13_1P_1024x8_c2_bm_bist.gds"],
@@ -65,9 +68,12 @@
   "//": "foundry cell), so don't fail the flow on them; the Tiny Tapeout precheck signs off with KLayout DRC.",
   "ERROR_ON_MAGIC_DRC": false,
 
-  "//": "The SRAM's pins face away from the IO pins, so its DOUT nets route around the macro and",
-  "//": "exceed its 64 fF max_capacitance; repair again once real global routes are known.",
+  "//": "The SRAM DOUT pins drive at most 64 fF; repair again once real global routes are known.",
   "RUN_POST_GRT_DESIGN_REPAIR": 1,
+
+  "//": "Run the foundry KLayout DRC deck in the flow too, so sign-off evidence for the Magic DRC",
+  "//": "waiver above comes from this run and not only from the Tiny Tapeout precheck.",
+  "RUN_KLAYOUT_DRC": 1,
 
   "//": "The tile PDN is Metal4-only, so the SRAM's Metal4 supply pins are connected by",
   "//": "Project.SramPowerColumns (librelane_plugin_protoemu.py) right after pdngen, and",
@@ -88,7 +94,6 @@
 
   "//": "Save some time",
   "RUN_KLAYOUT_XOR": 0,
-  "RUN_KLAYOUT_DRC": 0,
 
   "//": "Don't put clock buffers on the outputs",
   "DESIGN_REPAIR_BUFFER_OUTPUT_PORTS": 0,

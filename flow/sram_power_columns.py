@@ -56,6 +56,31 @@ def centre(lo, hi):
     return (lo + hi) // 2
 
 
+# OpenDB orientation names for the four unrotated placements.
+# LEF/DEF names: R0 = N, MX = FS (flip about the x axis), MY = FN, R180 = S.
+SUPPORTED_ORIENTS = {"R0", "MX", "MY", "R180"}
+
+
+def master_to_die(orient, bbox, gx0, gx1, gy0, gy1):
+    """Map a master-coordinate rectangle into die coordinates.
+
+    The instance bbox is the placed macro outline, so a mirror about an axis
+    maps g to (far edge - g) along that axis.  Assumes the LEF ORIGIN is 0 0,
+    which holds for the IHP SRAM macros.
+    """
+    flip_x = orient in ("MY", "R180")
+    flip_y = orient in ("MX", "R180")
+    if flip_x:
+        x0, x1 = bbox.xMax() - gx1, bbox.xMax() - gx0
+    else:
+        x0, x1 = bbox.xMin() + gx0, bbox.xMin() + gx1
+    if flip_y:
+        y0, y1 = bbox.yMax() - gy1, bbox.yMax() - gy0
+    else:
+        y0, y1 = bbox.yMin() + gy0, bbox.yMin() + gy1
+    return x0, x1, y0, y1
+
+
 @click.command()
 @click.option("--layer", "layer_name", default="Metal4", help="PDN stripe layer")
 @click.option("--rail-layer", "rail_layer_name", default="Metal1", help="Follow-pin rail layer")
@@ -84,9 +109,10 @@ def power_columns(reader, layer_name, rail_layer_name, macro_prefix):
         return
 
     for inst in srams:
-        if inst.getOrient() != "R0":
+        if inst.getOrient() not in SUPPORTED_ORIENTS:
             raise click.ClickException(
-                f"{inst.getName()}: orientation {inst.getOrient()} is not supported, place the SRAM at R0"
+                f"{inst.getName()}: orientation {inst.getOrient()} is not supported; "
+                f"use one of {sorted(SUPPORTED_ORIENTS)} (LEF/DEF N, FS, FN, S)"
             )
 
     # --- Collect each macro's supply pins, keyed by the net they connect to.
@@ -94,6 +120,7 @@ def power_columns(reader, layer_name, rail_layer_name, macro_prefix):
     columns = {}
     for inst in srams:
         bbox = inst.getBBox()
+        orient = inst.getOrient()
         for iterm in inst.getITerms():
             mterm = iterm.getMTerm()
             if mterm.getSigType() not in ("POWER", "GROUND"):
@@ -108,15 +135,10 @@ def power_columns(reader, layer_name, rail_layer_name, macro_prefix):
                 for geo in mpin.getGeometry():
                     if geo.getTechLayer() is None or geo.getTechLayer().getName() != layer_name:
                         continue
-                    columns.setdefault(net.getName(), []).append(
-                        (
-                            bbox.xMin() + geo.xMin(),
-                            bbox.xMin() + geo.xMax(),
-                            bbox.yMin() + geo.yMin(),
-                            bbox.yMin() + geo.yMax(),
-                            bbox,
-                        )
+                    x0, x1, y0, y1 = master_to_die(
+                        orient, bbox, geo.xMin(), geo.xMax(), geo.yMin(), geo.yMax()
                     )
+                    columns.setdefault(net.getName(), []).append((x0, x1, y0, y1, bbox))
 
     # --- Full stripe height, taken from pdngen's own untrimmed stripes.
     stripes = {}
